@@ -7,41 +7,45 @@
 
 void analyse(struct pcap_pkthdr *header, const unsigned char *packet, int verbose) {
 	
+	static unsigned long arp_poisioning_counter = 0;
 	static unsigned long pcount = 0;
-	
+/*	
 	if (verbose == 1)
 		printf("\n\n === PACKET %ld HEADER ===\n", pcount);
-	
-	unsigned int i;
-	
+*/	
 	struct ether_header *eth_header = (struct ether_header *) packet;
-
+/*
 	if (verbose == 1)
-		etherOut(header, packet);
-
+		etherOut(eth_header);
+*/
 	if(ntohs(eth_header->ether_type) == ETHERTYPE_IP){
 		const unsigned char *eth_strip_packet = packet + ETH_HLEN;
                 struct iphdr *ip_header = (struct iphdr *) eth_strip_packet;
-		
+/*		
 		if (verbose == 1)
 			ipOut(ip_header);
-		
+*/		
 		if (ip_header->protocol == 6){
 			const unsigned char *ip_strip_packet = eth_strip_packet + 4*ip_header->ihl;
                         struct tcphdr *tcp_header = (struct tcphdr *) ip_strip_packet;
-
-			tcpOut(tcp_header);
-		}
+/*			if (verbose == 1)
+				tcpOut(tcp_header);
+*/		}
 	}
 	else if(ntohs(eth_header->ether_type) == ETHERTYPE_ARP){
 		const unsigned char *eth_strip_packet = packet + ETH_HLEN;
         	struct ether_arp *arp_packet = (struct ether_arp *) eth_strip_packet;
-        	struct ether_arp.ea_hdr *arp_header = (struct ether_arp.ea_hdr *) arp_header->ea_hdr;
-		
+ 		struct arphdr *arp_header = (struct arphdr *) &arp_packet->ea_hdr;
+
+	
+
 		if (verbose == 1)
 			arpOut(arp_packet, arp_header);
-	}
-	
+
+		if (ntohs(arp_header->ar_op) == ARPOP_REPLY)
+			arp_poisioning_counter++;			
+		printf("\nARP attacks currently: %d", arp_poisioning_counter);
+	}			
 	pcount++;
 }
 
@@ -75,9 +79,6 @@ void ipOut(struct iphdr *ip_header){
 	
 	// Breakdown of IP Header
 	printf("---IP Header---");
-	
-	const unsigned char *eth_strip_packet = packet + ETH_HLEN;
-	struct iphdr *ip_header = (struct iphdr *) eth_strip_packet;
 	
 	printf("\nVersion: %d ", ip_header->version);
 	
@@ -142,15 +143,11 @@ void ipOut(struct iphdr *ip_header){
 }	
 
 void tcpOut(struct tcphdr *tcp_header){
-	unsigned int i;
-			
+		
 	//Breakdown of TCP Header
 	
 	printf("\n---TCP Header---");
-	
-       	const unsigned char *ip_strip_packet = eth_strip_packet + 4*ip_header->ihl;
-       	struct tcphdr *tcp_header = (struct tcphdr *) ip_strip_packet;
-		
+			
 	printf("\nSource Port: %d", tcp_header->source);
 			
 	printf("\nDestination Port: %d", tcp_header->dest);
@@ -185,15 +182,15 @@ void tcpOut(struct tcphdr *tcp_header){
 	printf("\nUrgent Pointer: %d", tcp_header->urg_ptr);	//EXPAND ME?
 }	
 
-void arpOut(struct ether_arp *arp_packet, struct ether_arp.ea_hdr *arp_header){
+void arpOut(struct ether_arp *arp_packet, struct arphdr *arp_header){
 	unsigned int i;
 	
 	//Decode ARP Header
-        printf("---ARP Header---");
+        printf("\n---ARP Header---");
 
-	printf("%d", arp_header->ar_op);
+	printf("\nARP Opcode: %d", ntohs(arp_header->ar_op));
 
-	printf("Sender MAC Address ");
+	printf("\nSender MAC Address ");
 	for (i = 0; i < 6; ++i) {
                	printf("%02x", arp_packet->arp_sha[i]);
              	  	if (i < 5) {
@@ -201,7 +198,7 @@ void arpOut(struct ether_arp *arp_packet, struct ether_arp.ea_hdr *arp_header){
                	}
 	}
 
-	printf("Target MAC Address ");
+	printf("\nTarget MAC Address ");
         for (i = 0; i < 6; ++i) {
         	printf("%02x", arp_packet->arp_tha[i]);
         	if (i < 5) {
