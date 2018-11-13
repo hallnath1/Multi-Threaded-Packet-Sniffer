@@ -4,33 +4,49 @@
 #include <netinet/if_ether.h>
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
+#include<signal.h>
+#include<unistd.h>
+
+unsigned long arp_poisioning_counter = 0;
+unsigned long xmas_tree_counter = 0;
+unsigned long blacklisted_requests_counter = 0;
+
+void sig_handler(int signo){
+  	if (signo == SIGINT){
+		printf("\n\n ===Packet Sniffing Report=== \n");
+    		printf("ARP Poision Atacks = %d", arp_poisioning_counter);
+                printf("Xmas Tree Atacks = %d", xmas_tree_counter);
+                printf("Blacklisted Requests = %d", blacklisted_requests_counter);
+		printf("\n\n");
+		exit(0);
+	}
+}
 
 void analyse(struct pcap_pkthdr *header, const unsigned char *packet, int verbose) {
 	
-	static unsigned long arp_poisioning_counter = 0;
 	static unsigned long pcount = 0;
-/*	
+	
 	if (verbose == 1)
 		printf("\n\n === PACKET %ld HEADER ===\n", pcount);
-*/	
+	
 	struct ether_header *eth_header = (struct ether_header *) packet;
-/*
+
 	if (verbose == 1)
 		etherOut(eth_header);
-*/
+
 	if(ntohs(eth_header->ether_type) == ETHERTYPE_IP){
 		const unsigned char *eth_strip_packet = packet + ETH_HLEN;
                 struct iphdr *ip_header = (struct iphdr *) eth_strip_packet;
-/*		
+		
 		if (verbose == 1)
 			ipOut(ip_header);
-*/		
+		
 		if (ip_header->protocol == 6){
 			const unsigned char *ip_strip_packet = eth_strip_packet + 4*ip_header->ihl;
                         struct tcphdr *tcp_header = (struct tcphdr *) ip_strip_packet;
-/*			if (verbose == 1)
+			if (verbose == 1)
 				tcpOut(tcp_header);
-*/		}
+		}
 	}
 	else if(ntohs(eth_header->ether_type) == ETHERTYPE_ARP){
 		const unsigned char *eth_strip_packet = packet + ETH_HLEN;
@@ -44,9 +60,15 @@ void analyse(struct pcap_pkthdr *header, const unsigned char *packet, int verbos
 
 		if (ntohs(arp_header->ar_op) == ARPOP_REPLY)
 			arp_poisioning_counter++;			
-		printf("\nARP attacks currently: %d", arp_poisioning_counter);
-	}			
+	}
+
 	pcount++;
+	
+	if (signal(SIGINT, sig_handler) == SIG_ERR)
+ 		printf("\nCan't catch SIGINT\n");
+ 	while(1) 
+    		sleep(1);
+	return 0;
 }
 
 void etherOut(struct ether_header *eth_header) {
