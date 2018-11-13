@@ -32,6 +32,7 @@ void sniff(char *interface, int verbose) {
       }
     } else {
       // Optional: dump raw data to terminal
+<<<<<<< HEAD
       /*
  	if (verbose) {
         dump(packet, header.len);
@@ -40,6 +41,13 @@ void sniff(char *interface, int verbose) {
       // Dispatch packet for processing
       dispatch(&header, packet, verbose);
       printf("\n");
+=======
+      if (verbose) {
+        dump(packet, header.len);
+      }
+      // Dispatch packet for processing
+      dispatch(&header, packet, verbose);
+>>>>>>> d7f4ad92172e6c3ad8064dce7fdb532bf474e5f3
     }
   }
 }
