@@ -4,8 +4,9 @@
 #include <netinet/if_ether.h>
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
-#include<signal.h>
-#include<unistd.h>
+#include <signal.h>
+#include <unistd.h>
+#include <stdlib.h> 	//Allows exit(0)
 
 unsigned long arp_poisioning_counter = 0;
 unsigned long xmas_tree_counter = 0;
@@ -13,10 +14,10 @@ unsigned long blacklisted_requests_counter = 0;
 
 void sig_handler(int signo){
   	if (signo == SIGINT){
-		printf("\n\n ===Packet Sniffing Report=== \n");
-    		printf("ARP Poision Atacks = %d", arp_poisioning_counter);
-                printf("Xmas Tree Atacks = %d", xmas_tree_counter);
-                printf("Blacklisted Requests = %d", blacklisted_requests_counter);
+		printf("\n\n===Packet Sniffing Report===\n");
+    		printf("ARP Poision Atacks = %ld\n", arp_poisioning_counter);
+                printf("Xmas Tree Atacks = %ld\n", xmas_tree_counter);
+                printf("Blacklisted Requests = %ld\n", blacklisted_requests_counter);
 		printf("\n\n");
 		exit(0);
 	}
@@ -46,14 +47,18 @@ void analyse(struct pcap_pkthdr *header, const unsigned char *packet, int verbos
                         struct tcphdr *tcp_header = (struct tcphdr *) ip_strip_packet;
 			if (verbose == 1)
 				tcpOut(tcp_header);
+			//Test for Xmas Tree Packets (FIN, URG and PUSH set)
+			if (tcp_header->fin && tcp_header->urg && tcp_header->psh)
+				xmas_tree_counter++;
+			//Test for request to blacklisted site
+			if (strstr(ip_strip_packet + 4*tcp_header->doff, "Host: www.bbc.co.uk") && ntohs(tcp_header->dest) == 80)  
+				blacklisted_requests_counter++;
 		}
 	}
 	else if(ntohs(eth_header->ether_type) == ETHERTYPE_ARP){
 		const unsigned char *eth_strip_packet = packet + ETH_HLEN;
         	struct ether_arp *arp_packet = (struct ether_arp *) eth_strip_packet;
  		struct arphdr *arp_header = (struct arphdr *) &arp_packet->ea_hdr;
-
-	
 
 		if (verbose == 1)
 			arpOut(arp_packet, arp_header);
@@ -66,9 +71,8 @@ void analyse(struct pcap_pkthdr *header, const unsigned char *packet, int verbos
 	
 	if (signal(SIGINT, sig_handler) == SIG_ERR)
  		printf("\nCan't catch SIGINT\n");
- 	while(1) 
-    		sleep(1);
-	return 0;
+/* 	while(1) 
+    		sleep(1);*/
 }
 
 void etherOut(struct ether_header *eth_header) {
