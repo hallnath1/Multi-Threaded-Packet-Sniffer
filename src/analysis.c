@@ -26,7 +26,7 @@ void sig_handler(int signo){
 	}
 }
 
-void analyse(struct pcap_pkthdr *header, const unsigned char *packet, int verbose) {
+void analyse(const struct pcap_pkthdr *header, const unsigned char *packet, int verbose) {
 	
 	static unsigned long pcount = 0;
 	
@@ -54,7 +54,7 @@ void analyse(struct pcap_pkthdr *header, const unsigned char *packet, int verbos
 			if (tcp_header->fin && tcp_header->urg && tcp_header->psh)
 				xmas_tree_counter++;
 			//Test for request to blacklisted site
-			const char *http_packet = (char *) ip_strip_packet + 4*tcp_header->doff;
+			const char *http_packet = (char *) (ip_strip_packet + 4*tcp_header->doff);
 			if (strstr(http_packet, "Host: www.bbc.co.uk") && ntohs(tcp_header->dest) == 80)  
 				blacklisted_requests_counter++;
 		}
