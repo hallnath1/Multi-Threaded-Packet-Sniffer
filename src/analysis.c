@@ -7,6 +7,7 @@
 #include <signal.h>
 #include <unistd.h>
 #include <stdlib.h> 	//Allows exit(0)
+#include <string.h>
 
 unsigned long arp_poisioning_counter = 0;
 unsigned long xmas_tree_counter = 0;
@@ -19,6 +20,8 @@ void sig_handler(int signo){
                 printf("Xmas Tree Atacks = %ld\n", xmas_tree_counter);
                 printf("Blacklisted Requests = %ld\n", blacklisted_requests_counter);
 		printf("\n\n");
+
+		pcap_close(pcap_handle);
 		exit(0);
 	}
 }
@@ -51,7 +54,8 @@ void analyse(struct pcap_pkthdr *header, const unsigned char *packet, int verbos
 			if (tcp_header->fin && tcp_header->urg && tcp_header->psh)
 				xmas_tree_counter++;
 			//Test for request to blacklisted site
-			if (strstr(ip_strip_packet + 4*tcp_header->doff, "Host: www.bbc.co.uk") && ntohs(tcp_header->dest) == 80)  
+			const char *http_packet = (char *) ip_strip_packet + 4*tcp_header->doff;
+			if (strstr(http_packet, "Host: www.bbc.co.uk") && ntohs(tcp_header->dest) == 80)  
 				blacklisted_requests_counter++;
 		}
 	}
@@ -71,8 +75,8 @@ void analyse(struct pcap_pkthdr *header, const unsigned char *packet, int verbos
 	
 	if (signal(SIGINT, sig_handler) == SIG_ERR)
  		printf("\nCan't catch SIGINT\n");
-/* 	while(1) 
-    		sleep(1);*/
+	
+	free((void*)packet);
 }
 
 void etherOut(struct ether_header *eth_header) {

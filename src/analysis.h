@@ -6,6 +6,10 @@
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
 
+#include "sniff.h"
+
+extern pcap_t * pcap_handle;
+
 void analyse(struct pcap_pkthdr *header, const unsigned char *packet, int verbose);
 
 void etherOut(struct ether_header *eth_header);
