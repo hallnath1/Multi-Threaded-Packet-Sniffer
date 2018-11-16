@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
         args.verbose = 1;
         break;
       case 'i':
-        args.interface = strdup(optarg);
+        args.interface = optarg;
         break;
       default:
         print_usage(argv[0]);
