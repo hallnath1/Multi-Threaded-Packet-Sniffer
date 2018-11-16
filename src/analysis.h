@@ -9,6 +9,9 @@
 #include "sniff.h"
 
 extern pcap_t * pcap_handle;
+extern unsigned long arp_poisioning_counter;
+extern unsigned long xmas_tree_counter;
+extern unsigned long blacklisted_requests_counter;
 
 void analyse(const struct pcap_pkthdr *header, const unsigned char *packet, int verbose);
 

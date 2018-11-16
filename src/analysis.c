@@ -4,35 +4,16 @@
 #include <netinet/if_ether.h>
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
-#include <signal.h>
 #include <unistd.h>
 #include <stdlib.h> 	//Allows exit(0)
 #include <string.h>
-
-unsigned long arp_poisioning_counter = 0;
-unsigned long xmas_tree_counter = 0;
-unsigned long blacklisted_requests_counter = 0;
-
-void sig_handler(int signo){
-  	if (signo == SIGINT){
-		printf("\n\n===Packet Sniffing Report===\n");
-    		printf("ARP Poision Atacks = %ld\n", arp_poisioning_counter);
-                printf("Xmas Tree Atacks = %ld\n", xmas_tree_counter);
-                printf("Blacklisted Requests = %ld\n", blacklisted_requests_counter);
-		printf("\n\n");
-
-		pcap_close(pcap_handle);
-		exit(0);
-	}
-}
 
 void analyse(const struct pcap_pkthdr *header, const unsigned char *packet, int verbose) {
 	
 	static unsigned long pcount = 0;
 	
 	if (verbose == 1)
-		printf("\n\n === PACKET %ld HEADER ===\n", pcount);
-	
+		printf("\n\n === PACKET %ld HEADER ===\n", pcount);	
 	struct ether_header *eth_header = (struct ether_header *) packet;
 
 	if (verbose == 1)
@@ -72,11 +53,6 @@ void analyse(const struct pcap_pkthdr *header, const unsigned char *packet, int 
 	}
 
 	pcount++;
-	
-	if (signal(SIGINT, sig_handler) == SIG_ERR)
- 		printf("\nCan't catch SIGINT\n");
-	
-	free((void*)packet);
 }
 
 void etherOut(struct ether_header *eth_header) {
