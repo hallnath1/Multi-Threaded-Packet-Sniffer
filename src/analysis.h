@@ -11,7 +11,7 @@
 extern pcap_t * pcap_handle;
 extern int verbose;
 
-counters *analyse(const struct pcap_pkthdr *header, const unsigned char *packet);
+counters *analyse(const unsigned char *packet, unsigned long pcount);
 
 void etherOut(struct ether_header *eth_header);
 

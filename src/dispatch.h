@@ -8,6 +8,6 @@
 extern linkedlist* packet_queue;
 extern int verbose;
 
-void dispatch(const struct pcap_pkthdr *header, const unsigned char *packet);
+void dispatch(const unsigned char *packet, unsigned long pcount);
 
 #endif

@@ -8,8 +8,7 @@
 #include <stdlib.h> 	//Allows exit(0)
 #include <string.h>
 
-unsigned long pcount = 0;
-counters* analyse(const struct pcap_pkthdr *header, const unsigned char *packet) {
+counters* analyse(const unsigned char *packet, unsigned long pcount) {
 	
 	counters *packet_counter = malloc(sizeof(counters));
 	packet_counter->arp_poisioning_counter = 0;
@@ -56,7 +55,6 @@ counters* analyse(const struct pcap_pkthdr *header, const unsigned char *packet)
 			packet_counter->arp_poisioning_counter++;			
 	}
 	
-	pcount++;	//MUTEX LOCK!!
 	return packet_counter;
 }
 

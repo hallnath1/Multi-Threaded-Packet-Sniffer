@@ -9,8 +9,8 @@ void packet_handler(unsigned char *args, const struct pcap_pkthdr *header, const
 void sig_handler(int signo);
 
 typedef struct element{
-        const struct pcap_pkthdr *header;
 	const unsigned char *packet;
+	unsigned long pcount;
         struct element* next;
 } element;
 

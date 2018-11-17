@@ -20,6 +20,7 @@ counters *threadOut[4];
 linkedlist* packet_queue;
 pthread_mutex_t queuelock = PTHREAD_MUTEX_INITIALIZER;
 int FLAG_RUN = 1;
+unsigned long pcount = 0;
 
 // Application main sniffing loop
 void sniff(char *interface, int v) {
@@ -66,8 +67,8 @@ void packet_handler(
 		pack[sizeof(char)*header->len] = '\0';
                 
 		// Dispatch packet for processing
-                dispatch(header, pack);
-		
+                dispatch(packet, pcount);
+		pcount++;
 		free((void*)pack);
 	}
 
@@ -89,7 +90,7 @@ void *thread_code(void* arg) {
 			
 			pthread_mutex_unlock(&queuelock);
 			
-			counters *return_counters = analyse(elem->header, elem->packet);
+			counters *return_counters = analyse(elem->packet, elem->pcount);
 			
 			threadOut[args->threadnum]->xmas_tree_counter += return_counters->xmas_tree_counter;
 			threadOut[args->threadnum]->arp_poisioning_counter += return_counters->arp_poisioning_counter;
@@ -99,9 +100,6 @@ void *thread_code(void* arg) {
 			free(return_counters);
 		}
 	}
-	printf("\nThread %d - ARP Atacks = %ld",args->threadnum + 1, threadOut[args->threadnum]->arp_poisioning_counter);
-        printf("\nThread %d - Xmas Tree Atacks = %ld",args->threadnum + 1, threadOut[args->threadnum]->xmas_tree_counter);
-        printf("\nThread %d - Blacklisted Requests = %ld",args->threadnum + 1, threadOut[args->threadnum]->blacklisted_requests_counter);
 	free(args);
 	return NULL;
 }

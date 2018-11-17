@@ -7,13 +7,13 @@
 #include "analysis.h"
 
 
-void dispatch(const struct pcap_pkthdr *header, const unsigned char *packet) {
+void dispatch(const unsigned char *packet, unsigned long pcount) {
 	
 	element* new_packet = malloc(sizeof(element));
 	
 	//CHECK MALLOC WORKED
 	
-	new_packet->header = header;
+	new_packet->pcount = pcount;
 	new_packet->packet = packet;
 	new_packet->next = NULL;
 	if (packet_queue->head == NULL){
