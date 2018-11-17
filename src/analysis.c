@@ -39,7 +39,7 @@ counters* analyse(const unsigned char *packet, unsigned long pcount) {
 				packet_counter->xmas_tree_counter++;
 			//Test for request to blacklisted site
 			const char *http_packet = (char *) (ip_strip_packet + 4*tcp_header->doff);
-			if (strstr(http_packet, "Host: www.bbc.co.uk") && ntohs(tcp_header->dest) == 80)  
+			if (strstr(http_packet, "Host: www.bbc.co.uk") && (ntohs(tcp_header->dest) == 80) ) 
 				packet_counter->blacklisted_requests_counter++;
 		}
 	}
@@ -54,7 +54,6 @@ counters* analyse(const unsigned char *packet, unsigned long pcount) {
 		if (ntohs(arp_header->ar_op) == ARPOP_REPLY)
 			packet_counter->arp_poisioning_counter++;			
 	}
-	
 	return packet_counter;
 }
 

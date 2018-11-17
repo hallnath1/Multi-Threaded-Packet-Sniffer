@@ -62,14 +62,14 @@ void packet_handler(
                 }
        	}
        	else {
-       		unsigned char *pack = malloc(sizeof(char)*header->len + 1);
-                memcpy(pack, packet, header->len);
-		pack[sizeof(char)*header->len] = '\0';
+       		
                 
 		// Dispatch packet for processing
-                dispatch(packet, pcount);
+                //pthread_mutex_lock(&queuelock);
+		dispatch(header, packet, pcount);
+		//pthread_mutex_unlock(&queuelock);
+		
 		pcount++;
-		free((void*)pack);
 	}
 
     	return;
@@ -91,11 +91,11 @@ void *thread_code(void* arg) {
 			pthread_mutex_unlock(&queuelock);
 			
 			counters *return_counters = analyse(elem->packet, elem->pcount);
-			
 			threadOut[args->threadnum]->xmas_tree_counter += return_counters->xmas_tree_counter;
 			threadOut[args->threadnum]->arp_poisioning_counter += return_counters->arp_poisioning_counter;
 			threadOut[args->threadnum]->blacklisted_requests_counter += return_counters->blacklisted_requests_counter;
 			
+			free((void *)elem->packet);
 			free(elem);
 			free(return_counters);
 		}
@@ -122,7 +122,7 @@ void sig_handler(int signo){
 		printf("\n\n===Packet Sniffing Report===\n");
                 printf("ARP Poision Atacks = %ld\n", threadOut[0]->arp_poisioning_counter);
                 printf("Xmas Tree Atacks = %ld\n", threadOut[0]->xmas_tree_counter);
-                printf("Blacklisted Requests = %ld\n\n", threadOut[0]->blacklisted_requests_counter);
+                printf("Blacklisted Requests = %ld\n", threadOut[0]->blacklisted_requests_counter);
                 printf("\n\n");
 		free(threadOut[0]);
                 exit(0);
@@ -158,7 +158,8 @@ void destroyQueue(){
 	while(packet_queue->head){
 		struct element * elem = packet_queue->head;
 		if (elem) {
-			packet_queue->head = elem->next;
+			packet_queue->head = elem->next;	
+			free((void *)elem->packet);
 			free(elem);
 		}
 		else{
