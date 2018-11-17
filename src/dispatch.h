@@ -3,8 +3,11 @@
 
 #include <pcap.h>
 
-void dispatch(const struct pcap_pkthdr *header, 
-              const unsigned char *packet,
-              int verbose);
+#include "sniff.h"
+
+extern linkedlist* packet_queue;
+extern int verbose;
+
+void dispatch(const struct pcap_pkthdr *header, const unsigned char *packet);
 
 #endif

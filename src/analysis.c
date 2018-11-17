@@ -8,9 +8,13 @@
 #include <stdlib.h> 	//Allows exit(0)
 #include <string.h>
 
-void analyse(const struct pcap_pkthdr *header, const unsigned char *packet, int verbose) {
+unsigned long pcount = 0;
+counters* analyse(const struct pcap_pkthdr *header, const unsigned char *packet) {
 	
-	static unsigned long pcount = 0;
+	counters *packet_counter = malloc(sizeof(counters));
+	packet_counter->arp_poisioning_counter = 0;
+	packet_counter->xmas_tree_counter = 0;
+	packet_counter->blacklisted_requests_counter = 0;
 	
 	if (verbose == 1)
 		printf("\n\n === PACKET %ld HEADER ===\n", pcount);	
@@ -33,11 +37,11 @@ void analyse(const struct pcap_pkthdr *header, const unsigned char *packet, int 
 				tcpOut(tcp_header);
 			//Test for Xmas Tree Packets (FIN, URG and PUSH set)
 			if (tcp_header->fin && tcp_header->urg && tcp_header->psh)
-				xmas_tree_counter++;
+				packet_counter->xmas_tree_counter++;
 			//Test for request to blacklisted site
 			const char *http_packet = (char *) (ip_strip_packet + 4*tcp_header->doff);
 			if (strstr(http_packet, "Host: www.bbc.co.uk") && ntohs(tcp_header->dest) == 80)  
-				blacklisted_requests_counter++;
+				packet_counter->blacklisted_requests_counter++;
 		}
 	}
 	else if(ntohs(eth_header->ether_type) == ETHERTYPE_ARP){
@@ -49,10 +53,11 @@ void analyse(const struct pcap_pkthdr *header, const unsigned char *packet, int 
 			arpOut(arp_packet, arp_header);
 
 		if (ntohs(arp_header->ar_op) == ARPOP_REPLY)
-			arp_poisioning_counter++;			
+			packet_counter->arp_poisioning_counter++;			
 	}
-
-	pcount++;
+	
+	pcount++;	//MUTEX LOCK!!
+	return packet_counter;
 }
 
 void etherOut(struct ether_header *eth_header) {
