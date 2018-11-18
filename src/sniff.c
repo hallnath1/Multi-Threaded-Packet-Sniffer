@@ -14,7 +14,7 @@ int verbose;
 // Application main sniffing loop
 void sniff(char *interface, int v) {
 
-	verbose = 0;
+	verbose = v;
 	
 	
 	

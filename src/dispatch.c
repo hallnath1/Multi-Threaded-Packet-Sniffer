@@ -44,7 +44,6 @@ void dispatch(const struct pcap_pkthdr *header, const unsigned char *pack, unsig
 		tail->next = new_packet;
 	}
 	
-	
         pthread_mutex_unlock(&queuelock);
 }
 
@@ -132,22 +131,21 @@ void initQueue(){
 }
 
 void destroyQueue(){
-	if(packet_queue){
-		while(packet_queue->head){
-			struct element * elem = packet_queue->head;
-			if (elem) {
-				packet_queue->head = elem->next;	
-				free((void *)elem->packet);
-				free(elem);
-			}
-			else{
-				break;
-			}
+	
+	while(packet_queue->head){
+		struct element * elem = packet_queue->head;
+		if (elem) {
+			packet_queue->head = elem->next;	
+			free((void *)elem->packet);
+			free(elem);
 		}
-		free(packet_queue);
+		else{
+			break;
+		}
 	}
-	//if(THREADS_FLAG)
-		pthread_mutex_destroy(&queuelock);
+	free(packet_queue);
+	
+	pthread_mutex_destroy(&queuelock);
 }
 
 
