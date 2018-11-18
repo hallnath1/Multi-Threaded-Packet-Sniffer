@@ -5,7 +5,7 @@
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
 #include <unistd.h>
-#include <stdlib.h> 	//Allows exit(0)
+#include <stdlib.h>
 #include <string.h>
 
 counters* analyse(const unsigned char *packet, unsigned long pcount) {

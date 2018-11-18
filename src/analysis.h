@@ -6,7 +6,7 @@
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
 
-#include "sniff.h"
+#include "dispatch.h"
 
 extern pcap_t * pcap_handle;
 extern int verbose;
