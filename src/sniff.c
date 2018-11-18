@@ -15,30 +15,26 @@ pcap_t *pcap_handle;
 int verbose;
 
 //FOR THREADS
-pthread_t threads[4];
-counters *threadOut[4];
+pthread_t threads[2];
+counters *threadOut[2];
 linkedlist* packet_queue;
 pthread_mutex_t queuelock = PTHREAD_MUTEX_INITIALIZER;
 int FLAG_RUN = 1;
+int THREADS_FLAG = 0;
 unsigned long pcount = 0;
 
 // Application main sniffing loop
 void sniff(char *interface, int v) {
 
-	verbose = v;	
-
-	//CREATE QUEUE
-	initQueue();
-	//CREATE THREADS
-	createThreads();
-
+	verbose = v;
 	
-	if (signal(SIGINT, sig_handler) == SIG_ERR)
-        	printf("\nCan't catch SIGINT\n");
-
+	
+	
 	// Open network interface for packet capture
 	char errbuf[PCAP_ERRBUF_SIZE];
 	pcap_handle = pcap_open_live(interface, 4096, 1, 0, errbuf);
+	if (signal(SIGINT, sig_handler) == SIG_ERR)
+        	printf("\nCan't catch SIGINT\n");
   	if (pcap_handle == NULL) {
     		fprintf(stderr, "Unable to open interface %s\n", errbuf);
     		exit(EXIT_FAILURE);
@@ -46,6 +42,12 @@ void sniff(char *interface, int v) {
 	else {
     		printf("SUCCESS! Opened %s for capture\n", interface);
   	}
+  	
+  	//CREATE QUEUE
+	initQueue();
+	//CREATE THREADS
+	createThreads();
+
 	pcap_loop(pcap_handle, 0, packet_handler, NULL);
 }
 
@@ -65,9 +67,9 @@ void packet_handler(
        		
                 
 		// Dispatch packet for processing
-                //pthread_mutex_lock(&queuelock);
+                pthread_mutex_lock(&queuelock);
 		dispatch(header, packet, pcount);
-		//pthread_mutex_unlock(&queuelock);
+		pthread_mutex_unlock(&queuelock);
 		
 		pcount++;
 	}
@@ -81,23 +83,29 @@ void *thread_code(void* arg) {
 	threadOut[args->threadnum]->arp_poisioning_counter = 0;
 	threadOut[args->threadnum]->blacklisted_requests_counter = 0;
 	while(FLAG_RUN){
-		
-		if (packet_queue->head != NULL){
-			pthread_mutex_lock(&queuelock);
+		pthread_mutex_lock(&queuelock);
+		if (packet_queue->head){
+			
 			
 			struct element * elem = packet_queue->head;
 			packet_queue->head = elem->next;
-			
 			pthread_mutex_unlock(&queuelock);
 			
 			counters *return_counters = analyse(elem->packet, elem->pcount);
+			
+			
+			
 			threadOut[args->threadnum]->xmas_tree_counter += return_counters->xmas_tree_counter;
 			threadOut[args->threadnum]->arp_poisioning_counter += return_counters->arp_poisioning_counter;
 			threadOut[args->threadnum]->blacklisted_requests_counter += return_counters->blacklisted_requests_counter;
 			
 			free((void *)elem->packet);
 			free(elem);
+			
 			free(return_counters);
+		}
+		else{
+			pthread_mutex_unlock(&queuelock);
 		}
 	}
 	free(args);
@@ -106,13 +114,16 @@ void *thread_code(void* arg) {
 
 void sig_handler(int signo){
         if (signo == SIGINT){
-                pcap_close(pcap_handle);
 		FLAG_RUN = 0;
-		cleanThreads();
+		if(THREADS_FLAG)
+			cleanThreads();
+		if (pcap_handle)
+			pcap_close(pcap_handle);
 		destroyQueue();
+		pthread_mutex_destroy(&queuelock);
 		
 		int i;
-		for (i = 1; i < 4; i++) {
+		for (i = 1; i < 2; i++) {
 			threadOut[0]->arp_poisioning_counter += threadOut[i]->arp_poisioning_counter;
 			threadOut[0]->xmas_tree_counter += threadOut[i]->xmas_tree_counter; 
 			threadOut[0]->blacklisted_requests_counter += threadOut[i]->blacklisted_requests_counter;
@@ -131,7 +142,8 @@ void sig_handler(int signo){
 
 void createThreads(){
 	int i;
-	for (i = 0; i < 4; i++) {
+	THREADS_FLAG = 1;
+	for (i = 0; i < 2; i++) {
 		threadOut[i] = malloc(sizeof(counters));
 		struct thread_args *args = malloc(sizeof(struct thread_args));
 		args->threadnum = i;
@@ -140,13 +152,13 @@ void createThreads(){
 }
 
 void cleanThreads(){
-	pthread_mutex_destroy(&queuelock);
 	
 	//JOIN THREADS
 	int i;
-	for (i = 0; i < 4; ++i) {
+	for (i = 0; i < 2; ++i) {
 		pthread_join(threads[i], NULL);
 	}
+	
 }
 
 void initQueue(){
