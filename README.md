@@ -1,9 +1,9 @@
 # CS241 Coursework - Packet Sniffer
-A multi-threaded packet sniffer for detection of ARP poisionning packets, XMAS Tree packets and requests to blacklisted sited (hardcoded to www.bbc.co.uk)
+A multi-threaded packet sniffer for detection of ARP poisioning packets, XMAS Tree packets and requests to blacklisted sited (hardcoded to www.bbc.co.uk)
 
 ## To-Do
  - Core Number Dependent Threading
- - Run-time Packet Report
+ - Run-time Packet Report (Maybe)
  - Report Writeup
 
 ## Report
@@ -24,3 +24,5 @@ The tested it
 2. Valgrind
 3. GDB
 4. Helgrind
+5. Git
+6. Testing files
