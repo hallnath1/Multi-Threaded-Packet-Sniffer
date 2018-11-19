@@ -6,10 +6,10 @@ A multi-threaded packet sniffer for detection of ARP poisionning packets, XMAS T
  - Run-time Packet Report
  - Report Writeup
 
-# Report
-## Design
+## Report
+### Design
 I designed something
-## Implementation
+### Implementation
 I implemented it
-## Testing
+### Testing
 The tested it
