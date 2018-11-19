@@ -7,9 +7,20 @@ A multi-threaded packet sniffer for detection of ARP poisionning packets, XMAS T
  - Report Writeup
 
 ## Report
-### Design
+* ### Design
 I designed something
-### Implementation
+1. Network Headers
+2. Packet Sniff for Attacks
+3. ThreadPool
+* ### Implementation
 I implemented it
-### Testing
+1. Use of Structs
+2. Linked List
+3. Mutex
+4. Threading (reduce share memory)
+* ### Testing
 The tested it
+1. Verbose
+2. Valgrind
+3. GDB
+4. Helgrind
