@@ -29,6 +29,7 @@ typedef struct counters{
 typedef struct element{
 	const unsigned char *packet;
 	unsigned long pcount;
+	const struct pcap_pkthdr *header;
         struct element* next;
 } element;
 
