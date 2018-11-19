@@ -19,7 +19,7 @@ I implemented it
 3. Mutex
 4. Threading (reduce share memory)
 * ### Testing
-The tested it
+Then tested it
 1. Verbose
 2. Valgrind
 3. GDB
