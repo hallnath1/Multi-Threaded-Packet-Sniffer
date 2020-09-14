@@ -2,9 +2,7 @@
 > https://warwick.ac.uk/fac/sci/dcs/teaching/material/cs241/coursework18-19/
 
 A multi-threaded packet sniffer for detection of ARP poisioning packets, XMAS Tree packets and requests to blacklisted sited (hardcoded to www.bbc.co.uk)
-Conclussion
-Abstract
-Introduction
+
 ## Report
 * ### Design
 I designed something
